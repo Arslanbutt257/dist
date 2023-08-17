@@ -1,0 +1,604 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} API Sample {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+
+<style>
+ #vendor-dropdown {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    padding: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+  }
+
+  .vendor-suggestion {
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+
+  .vendor-suggestion:hover {
+    background-color: #f5f5f5;
+  }
+
+</style>
+
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+{% load static %}
+
+<div class="row">
+  <div class="col-2">
+    <div class="d-flex flex-column align-items-center p-3 bg-light" style="width:100%;">
+      <div class="row w-100 justify-content-between align-items-center">
+        <div class="col-auto">
+          <h4 class="d-inline-block me-3">Actors</h4>
+        </div>
+        <div class="col-auto">
+          <i class="fas fa-info-circle" title="Select the actor and place it on the right and at the start of the dropzone. Once placed DOUBLE LEFT CLICK to remove any actor from dropzone."></i>
+        </div>
+      </div>
+      <hr style="background-color: black !important; height: 2px !important;width: inherit; ">
+      <div class="actor draggable d-flex flex-column align-items-center" id="accountant">
+        <img src="{% static 'assets/img/icons/Accountant.png'%}" draggable="true" ondragstart="drag(event, 'first')" id="accountant" alt="Accounts Clerk" width ="70" height="75">
+        <p class="mb-2">Accountant</p>
+      </div>
+      <div class="actor draggable d-flex flex-column align-items-center" id="clerk">  
+        <img src="{% static 'assets/img/icons/Clerk.png'%}"  draggable="true" ondragstart="drag(event, 'first')" id="clerk" alt="Accounts Clerk" class="m-2" width ="70" height="75">
+        <p class="mb-2">Clerk</p>
+      </div>
+      <div class="actordraggable d-flex flex-column align-items-center" id="manager">
+        <img  src="{% static 'assets/img/icons/Manager.png'%}"  draggable="true" ondragstart="drag(event, 'first')" id="manager" alt="Accounts Clerk" class="m-2" width ="70" height="75">
+        <p class="mb-2">Manager</p>
+      </div>
+      <div class="actor draggable d-flex flex-column align-items-center" id="finance">        
+        <img  src="{% static 'assets/img/icons/finance.png'%}"  draggable="true" ondragstart="drag(event, 'first')" id="finance" alt="Accounts Clerk" class="m-2" width ="70" height="75">
+        <p class="mb-2">Finance</p>  
+      </div>
+      <div class="actor draggable d-flex flex-column align-items-center" id="supervisor">       
+        <img src="{% static 'assets/img/icons/Supervisor.png'%}"  draggable="true" ondragstart="drag(event, 'first')" id="supervisor" alt="Accounts Clerk" class="m-2" width ="70" height="75">
+        <p class="mb-2">Supervisor</p>        
+      </div>
+    
+
+    </div>
+  </div>
+  <div id="dropzone" class="col-8" style="border: 2px solid grey; "  >
+    <!-- <canvas id="myCanvas" style="background-color:aqua; width: 100%; height: 100%;"></canvas> -->
+
+    <div class="row" id="rulezone" style="justify-content:  space-between;" >
+
+      <div class="card col-3 pt-2" id="actorzone" ondrop="drop(event)" ondragover="allowDrop(event)" style="margin: 20px; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); transform: scale(1.05);">
+      
+      </div>
+      
+      <div class="col-6 col-md-6" style="display: flex; height: 200px; align-items: center;">
+        <hr id="link-line" style="opacity:0; flex-grow: 1; border-color: lightgrey; border: 2px solid grey;">
+      </div>
+  
+      <div class="card col-3 pt-2" id="routingzone" ondrop="drop2(event)" ondragover="allowDrop(event)"  style="margin: 20px; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); transform: scale(1.05);">
+      
+      </div>
+
+
+
+    </div>
+
+    <div class="row p-4 ">
+      <button  title="To add new Rule" type="submit" id="addButton" class="btn btn-success" style="width: 75px; height: 30px; margin: 0 auto; display: flex; align-items: center; justify-content: center;" onclick="addDropzone()">
+        <i class="fas fa-plus" style="margin: 0 auto;"></i>
+      </button>
+      <button title="Click only once you have created the rule" type="submit" id="done" class="btn btn-success" style="width: 75px; height: 30px; margin: 0 auto; display: flex; align-items: center; justify-content: center;" onclick="saveRules()">
+        <i class="fas fa-check" style="margin: 0 auto;" ></i>
+      </button>
+    </div>
+
+  </div>
+
+  <div class="col-2 d-flex flex-column align-items-center p-3 bg-light">
+    <div class="row w-100 justify-content-between align-items-center">
+      <div class="col-auto">
+        <h4 class="d-inline-block me-3">Rules</h4>
+      </div>
+      <div class="col-auto">
+        <i class="fas fa-info-circle" title="Select the rule and place it in the left side window. Once placed DOUBLE LEFT CLICK to remove any rule. "></i>
+      </div>
+    </div>
+    <hr style="background-color: black !important; height: 2px !important;width: -webkit-fill-available;">
+    <div class="draggable d-flex flex-column align-items-center" id="amount">
+      <!-- <img src="{% static 'assets/img/icons/circle.png'%}" draggable="true" ondragstart="drag(event, 'third')" id="amount" alt="Accounts Clerk" width ="70" height="75"> -->
+      <div class="m-2 rule" draggable="true" ondragstart="drag(event, 'third')" id="amount" style="border: 2px solid black; width: 180px; height: 80px; position: relative;">
+      
+        <form id = "amount-form" method="post">
+          <!-- <p id="amount-input">salman</p> -->
+          <input class="amount-input" id="first-amount" required style="opacity: 0;font-size: 12px ;width: 40px; height: 20px; position: absolute; top: 30px; left: 3px; background : transparent;">
+          <img class="amount-input" src="{% static 'assets/img/icons/less.png'%}" width="30px" height="30px" style="opacity :0 ;position: absolute; top: 26px; left: 40px;">
+          <!-- <input id="second-amount" style="opacity: 1;width: 40px; height: 20px; position: absolute; top: 30px; left: 65px; background : transparent;" > -->
+          <p class="amount-input" style="font-size:smaller ;opacity: 0;width: auto; height: 20px; position: absolute; top: 30px; left: 60px; background : transparent;">invoices</p>
+          <img class="amount-input" src="{% static 'assets/img/icons/less.png'%}" width="30px" height="30px" style="opacity :0 ;position: absolute; top: 26px; left: 100px;">
+          <input class="amount-input" id="second-amount" required style="opacity: 0;font-size: 12px ;width: 40px; height: 20px; position: absolute; top: 30px; left: 125px; background : transparent;" >
+
+        </form>
+      
+      </div>
+      <p class="m-2">Amount</p>
+    </div>
+    <div class="draggable d-flex flex-column align-items-center" id="tax">
+      <!-- <img src="{% static 'assets/img/icons/rectangle.png'%}" draggable="true" ondragstart="drag(event, 'third')" id="tax" alt="Accounts Clerk" width ="70" height="75"> -->
+      <div class="m-2 rule" draggable="true" ondragstart="drag(event, 'third')" id="tax" style="border: 2px solid black; width: 150px; height: 150px;position: relative;">
+        <form id = "tax-form">
+          <input class="tax-input" id="first-tax" required style="opacity: 0;font-size: 12px ;width: 40px; height: 20px; background : transparent;position: absolute; top: 40% ; left: 3px;">
+          <img class="tax-input" src="{% static 'assets/img/icons/less.png'%}" width="30px" height="30px" style="opacity :0 ;position: absolute; top: 36% ; left: 40px;">
+          <!-- <input id="second-amount" style="opacity: 1;width: 40px; height: 20px; position: absolute; top: 30px; left: 65px; background : transparent;" > -->
+          <p class="tax-input" style="font-size:smaller ;opacity: 0;width: 40px; height: 20px; position: absolute; top: 40%; left: 62px; background : transparent;">inv</p>
+          <img class="tax-input" src="{% static 'assets/img/icons/less.png'%}" width="30px" height="30px" style="opacity :0 ;position: absolute; top: 36%; left: 75px;">
+          <input class="tax-input" id="second-tax" required style="opacity: 0;font-size: 12px ;width: 40px; height: 20px; position: absolute; top: 40%; left: 100px; background : transparent;" >
+
+        
+        
+        </form>
+      </div>
+      <p class="m-2">Tax</p>
+    </div>
+    <div class="draggable d-flex flex-column align-items-center" id="vendor">
+      <!-- <img src="{% static 'assets/img/icons/diamond.png'%}" draggable="true" ondragstart="drag(event, 'third')" id="vendor" alt="Accounts Clerk" width ="70" height="75"> -->
+      <div class="m-3 rule" draggable="true" ondragstart="drag(event, 'third')" id="vendor" style="border: 2px solid black;width: 100px; height: 100px; transform: rotate(45deg); display: flex; align-items: center; justify-content: center;">
+        <form id = "vendor-form">
+          <input id="vendor-input" style="transform : rotate(-45deg); opacity: 0;width: 90px; height: 20px; position: absolute; top: 40px; left: 7px; background : transparent;">
+        </form>
+        <div id="vendor-dropdown" style="opacity: 0; border-radius: 4px;box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);background-color: white;    border: 1px solid #ccc;;position: absolute; top: 100%; left: 0; z-index: 1;width: 200px ; max-height: 200px ;overflow-y: auto ;transform: rotate(-45deg);"></div>
+      </div>
+      <p class="m-2">Vendors</p>
+    </div>
+    <div class="draggable d-flex flex-column align-items-center" id="date">
+      <!-- <img src="{% static 'assets/img/icons/star.png'%}" draggable="true" ondragstart="drag(event, 'third')" id="date" alt="Accounts Clerk" width ="70" height="75"> -->
+     
+      <div class="m-2 rule" draggable="true" ondragstart="drag(event, 'third')" id="date" style="width: 150px;height: 80px; transform: skew(20deg);  border : 2px solid black; position: relative;">
+        
+        <form id = "date-form">
+          <input class="date-input" id="first-date" required type="date" style="opacity: 0;width: 40px; height: 20px; background : transparent;position: absolute; top: 30px ; left: 3px ;">
+          <img class="date-input" src="{% static 'assets/img/icons/less.png'%}" width="30px" height="30px" style="opacity :0 ;position: absolute; top: 36% ; left: 40px;">
+          <!-- <input id="second-amount" style="opacity: 1;width: 40px; height: 20px; position: absolute; top: 30px; left: 65px; background : transparent;" > -->
+          <p class="date-input" style="font-size:smaller ;opacity: 0;width: 40px; height: 20px; position: absolute; top: 40%; left: 62px; background : transparent;">inv</p>
+          <img class="date-input" src="{% static 'assets/img/icons/less.png'%}" width="30px" height="30px" style="opacity :0 ;position: absolute; top: 36%; left: 75px;">
+          <input class="date-input" id="second-date" required type="date" style="opacity:0;width: 40px; height: 20px; position: absolute; top: 40%; left: 100px; background : transparent;" >
+
+        
+        
+        </form>
+
+      </div>
+      <p class="m-2">Date</p>
+    </div>
+    <div class="draggable d-flex flex-column align-items-center" id="po specific">
+      <!-- <img src="{% static 'assets/img/icons/hexagon.png'%}" draggable="true" ondragstart="drag(event , 'third')" id="po_specific" alt="Accounts Clerk" width ="70" height="75"> -->
+      <div class="m-2 rule" draggable="true" ondragstart="drag(event , 'third')" id="po_specific" draggable="true" ondragstart="drag(event , 'third')" id="po_specific" style="border: 2px solid black; width: 80px; height: 80px; border-radius: 50%;"></div>
+      <p class="m-2">PO specific</p>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script>
+
+
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+function drag(ev, column) {
+  ev.dataTransfer.setData("text", ev.target.id);
+  ev.dataTransfer.setData("column" , column)
+  console.log("DRagging")
+}
+
+function drop(ev) {
+  ev.preventDefault();
+
+  let col = ev.dataTransfer.getData("column");
+  console.log("col", col)
+  var data = ev.dataTransfer.getData("text");
+  let dropzone = document.querySelector("#dropzone");
+  let actorzone = ev.target;
+  // let actorzone = document.querySelector("#actorzone")
+  let rulezone = document.querySelector('#routingzone');
+
+  let clone = document.querySelector("#" + data).cloneNode(true);
+
+  console.log("dropped", ev.target);
+
+  // clone.querySelector("p").contentEditable = true ;
+  document.querySelector("#link-line").style.opacity = 1;
+  // clone.querySelector("vendor-dropdown").style.display = "block";
+  
+  // clone.style.position = 'absolute';
+  // let position = { x: 0 , y: 0};
+  // let existingItems = dropzone.childNodes;
+  // let existingActors = actorzone.querySelectorAll(".actor");
+  // console.log("Existing actors: ", existingActors.length);
+
+  if (event.target.tagName.toLowerCase() === 'p') {
+    event.target.contentEditable = true;
+    // console.log("Cannot drop actor on a 'p' tag.");
+    return;
+  }
+
+  let existingItemsfirst = actorzone.children;
+  console.log("after appending ", existingItemsfirst.length )
+  if (col == 'first' && existingItemsfirst.length > 0) {
+    console.log("Actorzone already contains an actor. Cannot drop another actor.");
+    return;
+    // remove event listener after actor is dropped
+    // actorzone.removeEventListener("drop", drop);
+  } else {
+    console.log("ExistingItem length: ",existingItemsfirst.length)
+    actorzone.appendChild(clone);
+  }
+
+    
+    dropzone.addEventListener("dblclick", function(e){
+      console.log("clicked Remove")
+      if (e.target.nodeName  == "IMG"){
+        e.target.parentElement.remove();
+      }
+    })
+
+}
+
+function drop2(ev){
+  ev.preventDefault();
+
+  let col = ev.dataTransfer.getData("column");
+  console.log("col", col)
+  var data = ev.dataTransfer.getData("text");
+  let routingzone = ev.target;
+  let clone = document.querySelector("#" + data).cloneNode(true);
+  document.querySelector("#link-line").style.opacity =1;
+
+  console.log("droppedthird", ev.clientX);
+
+  // clone.querySelector("p").contentEditable = true ;
+
+  if(col == 'third'){
+
+    let existingItemsthird = routingzone.children;
+
+    console.log("existingitems", existingItemsthird.length)
+    console.log("clone_id", clone.id)
+    if(existingItemsthird.length == 0){
+      console.log("Dropping imaged in routingzone")
+      routingzone.appendChild(clone);
+     
+      if (clone.id == 'amount'){
+        var amountInputs = ev.target.querySelectorAll('.amount-input');
+        for (var i =0 ; i < amountInputs.length ; i++ ){
+          amountInputs[i].style.opacity = 1;
+        }
+      }
+      
+      if (clone.id == 'tax'){
+        var taxInputs = ev.target.querySelectorAll('.tax-input');
+        for (var i =0 ; i < taxInputs.length ; i++ ){
+          taxInputs[i].style.opacity = 1;
+        }
+
+      }
+      if (clone.id == 'vendor'){
+        ev.target.querySelector("#vendor-input").style.opacity = 1;
+        ev.target.querySelector('#vendor-dropdown').style.opacity = 1;
+      }
+      if(clone.id == 'date'){
+        var dateInputs =  ev.target.querySelectorAll('.date-input');
+        for (var i = 0 ; i < dateInputs.length ; i++){
+          dateInputs[i].style.opacity = 1;
+        }
+      }
+      // let inputfield = document.createElement("input");
+      // inputfield.setAttribute("type" , "text");
+      // inputfield.setAttribute("value" , "Enter rule here")
+      // clone.appendChild(inputfield)
+
+    }
+    else {
+      console.log("Item already exists in the dropzone");
+    }
+    }
+    
+    dropzone.addEventListener("dblclick", function(e){
+      console.log("clicked Remove")
+      if (e.target.classList.contains("rule")){
+        // const parent = e.target.parentElement;
+        e.target.parentElement.remove();
+        // parent.removeChild(amountInput);
+        // parent.remove()
+        
+      }
+    })
+
+    const firstamountInput = document.getElementById("first-amount");
+    const secondamountInput = document.getElementById("second-amount");
+    const firsttaxInput = document.getElementById("first-tax");
+    const secondtexInput = document.getElementById("second-tax");
+    const vendorInput = document.getElementById("vendor-input");
+    const firstdate = document.getElementById("first-date");
+    const seconddate = document.getElementById("second-date");
+
+    inputlistener(firstamountInput);
+    inputlistener(firsttaxInput);
+    inputlistener(vendorInput);
+    inputlistener(firstdate);
+
+   
+    
+ function populateVendorDropdown() {
+    $.ajax({
+        type : 'GET',
+        url: "{% url 'get_vendor' %}",
+        dataType: 'json',
+        success: function(vendors) {
+            let dropdown = $('#vendor-dropdown');
+            dropdown.empty();
+            if (vendors.vendors.length > 0) {
+                console.log("Dropdown vendor length getting")
+                for (let vendor of vendors.vendors) {
+                    dropdown.append(`<div class="vendor-suggestion">${vendor}</div>`);
+                 }
+
+          }else {
+            console.log("NO VENDORS")
+            dropdown.append(`<div class="vendor-suggestion">No vendors found</div>`);
+          }
+        }
+    });
+ }
+
+
+
+ $(document).ready(function() {
+//   console.log("Document is ready");
+  $('#vendor-input').keyup(function() {
+      console.log("typing......")
+      let input = $(this);
+      console.log("THIS: ", input)
+      let dropdown = $('#vendor-dropdown');
+      let searchTerm = input.val();
+      // console.log("SeARCHTERM : ", searchTerm)
+      if (searchTerm.length > 0) {
+          $.ajax({
+              type: 'GET',
+              url: "{% url 'search_vendor' %}",
+              data: { search_term: searchTerm },
+              dataType: 'json',
+              success: function(response) {
+                let vendors = response.vendors
+                // console.log("SUCCESSSSSS::::", vendor)
+                  dropdown.empty();
+                  let maxSuggestions = 5;
+                  let numSuggestions = 0;
+                  for (let vendor of vendors) {
+                    if (numSuggestions >= maxSuggestions ){
+                      break;
+                    }
+                    // console.log("VENDOR :" , vendor)
+                      dropdown.append(`<div class="vendor-suggestion">${vendor}</div>`);
+                      numSuggestions++;
+                  }
+                  dropdown.show();
+              }
+          });
+      } else {
+          dropdown.hide();
+      }
+  });
+
+});
+
+$(document).ready(function() {
+    console.log("TYPING")
+    populateVendorDropdown();
+});
+
+$('#vendor-dropdown').on('click', '.vendor-suggestion', function() {
+    console.log("VENDOR CLICKED")
+    let vendor = $(this).text();
+    $('#vendor-input').val(vendor);
+    $('#vendor-dropdown').hide();
+});
+
+
+
+    
+    
+}
+
+
+  function inputlistener(field){
+    let timeout;
+
+    field.addEventListener("input", function() {
+    
+    clearTimeout(timeout);
+    timeout = setTimeout(function() {
+  
+      const field_value = field.value;
+      console.log("Value::", field_value);
+  
+    }, 2000)
+  
+  })
+
+  document.addEventListener("click" , function(event){
+
+  if(event.target !== field){
+    const field_value = field.value;
+    // console.log("Clicked in the dom now value is " , field_value )
+  }
+})
+
+
+}
+  
+  $('#vendor-input').keyup(function() {
+    console.log("Checking here in vendor")
+  })
+  
+  $(document).on('change', function(data) {
+          var btn = this;
+          // console.log(this.value);
+      });
+
+function saveRules(){
+  // const vendorInput = document.getElementById("vendor-input");
+
+  // console.log("THE VENDOR INPUT CHECKING : ", vendorInput)
+
+  const dropzone = document.querySelectorAll("#rulezone");
+  const actors = [];
+  const rules = [];
+
+  dropzone.forEach((dropzone) =>{
+    const actor = dropzone.querySelector("#actorzone");
+    const rule = dropzone.querySelector("#routingzone");
+
+    let ruleID = "" ; 
+    let actorName = actor.querySelector("p").textContent; 
+
+    console.log("ACTOR ", actorName)
+    console.log("Rules", rule)
+
+    
+    // for(let i =0 ; i< actor.children.length ; i++){
+      // console.log("ACTORIDS ", actor.children[i].id);
+    // }
+
+    for(let i =0 ; i< rule.children.length ; i++){
+      ruleID = rule.children[i].id;
+     
+    }
+
+    console.log("RuleIDS ", ruleID);
+
+    if (ruleID == 'tax'){ 
+      let taxvalue_1 = rule.querySelector('#first-tax').value;
+      let taxvalue_2 = rule.querySelector('#second-tax').value;
+
+      console.log("First Value : " , taxvalue_1)
+      console.log("second_value : ", taxvalue_2)
+
+      sendRules(actorName , ruleID, taxvalue_1,taxvalue_2)
+    }
+
+    if(ruleID == 'amount'){
+      let amountvalue_1 = rule.querySelector('#first-amount').value;
+      let amountvalue_2 = rule.querySelector('#second-amount').value;
+
+      console.log("fist Amount : ", amountvalue_1)
+      console.log("second Amount : ", amountvalue_2)
+
+      sendRules(actorName, ruleID, amountvalue_1, amountvalue_2)
+
+    }
+
+    if(ruleID == 'date'){
+      let startDate = rule.querySelector('#first-date').value;
+      let endDate = rule.querySelector('#second-date').value;
+
+      console.log("First Date : ", startDate )
+      console.log("second Date : ", endDate )
+
+      sendRules(actorName, ruleID, startDate, endDate)
+
+      
+    }
+
+    if(ruleID == 'vendor'){
+      let vendor = rule.querySelector('#vendor-input').value;
+      
+      console.log("VENDOR  : ", vendor)
+
+      sendRules(actorName, ruleID, vendor, 0)
+
+    }
+
+  })
+
+
+}
+
+function sendRules(actor, ruletype , startRule, endRule ){
+  console.log("VALUES ", actor, ruletype, startRule, endRule)
+  fetch('/store-data/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken') // use Django's CSRF token
+      },
+      body: JSON.stringify({
+        actorName: actor,
+        ruleId: ruletype,
+        value1: startRule,
+        value2 : endRule
+      })
+    })
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.error(error));
+  
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
+      }
+  }
+  console.log("CookieValue",cookieValue)
+  return cookieValue;
+}
+
+
+function addDropzone() {
+  const originalDropzone = document.querySelector("#rulezone");
+  // originalDropzone.parentElement.remove();
+  // const actorzone = document.querySelector('#actorzone');
+  // const routingzone = document.querySelector('#routingzone');
+  // actorzone.innerHTML = "";
+  // routingzone.innerHTML = "";
+  const clonedDropzone = originalDropzone.cloneNode(true);
+  clonedDropzone.id = "rulezone" ;  // to ensure unique id
+  // clonedDropzone.removeChild(clonedDropzone.firstChild)
+  // while (actorzone.firstChild) {
+  //   actorzone.removeChild(actorzone.firstChild);
+  // clonedDropzone.childNodes.remove();
+
+  console.log("NEW DROPZONE", clonedDropzone.querySelectorAll('input'))
+  // }
+
+  originalDropzone.insertAdjacentElement('afterend', clonedDropzone);
+  // originalDropzone.parentNode.insertBefore(clonedDropzone, originalDropzone.nextSibling);
+}
+
+
+
+</script>
+
+{% endblock javascripts %}
